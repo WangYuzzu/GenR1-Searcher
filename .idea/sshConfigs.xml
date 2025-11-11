@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig authType="PASSWORD" host="connect.westb.seetacloud.com" id="87c0cad9-f84b-4652-b7ab-db3420481433" port="47583" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="connect.westb.seetacloud.com" id="bce3eecf-4df3-4779-85b7-1801bcf7a715" port="22760" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="connect.westc.gpuhub.com" id="770c2c58-f0d7-4263-9f1e-52bb2647cf82" port="13632" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="connect.westc.gpuhub.com" id="74fed5ed-b732-4280-b61a-7653e073f7dd" port="45212" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+      <sshConfig authType="PASSWORD" host="101.42.41.82" id="fa9c1ad4-8fc7-488a-be07-8db922f3ab96" port="6101" customName="shanyb@101.42.41.82:6101" nameFormat="CUSTOM" username="shanyb" useOpenSSHConfig="true">
+        <option name="customName" value="shanyb@101.42.41.82:6101" />
+      </sshConfig>
+      <sshConfig authType="PASSWORD" host="101.42.41.82" id="24d08703-607d-4592-8ed4-8faf331bcfa4" port="6101" nameFormat="DESCRIPTIVE" username="wangy" useOpenSSHConfig="true" />
+    </configs>
+  </component>
+</project>

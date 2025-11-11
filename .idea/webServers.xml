@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="25a5cb2d-7b3a-4f01-8489-a7ce63ca0882" name="6001">
+        <fileTransfer rootFolder="/home/shanyb" accessType="SFTP" host="120.255.8.149" port="22" sshConfigId="99d85c7a-4f6d-4c07-823f-638887dc2989" sshConfig="sunshiqi@120.255.8.149:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="d097f49e-9335-491b-8c26-e3159763ccf0" name="6201">
+        <fileTransfer rootFolder="/home/shanyb" accessType="SFTP" sshConfigId="138fc0d2-750f-49f4-8de1-771730712660" sshConfig="shanyb@101.42.41.82:6201 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="0b90970c-dec3-4bc6-b891-73bc98c20495" name="6101">
+        <fileTransfer rootFolder="/home/shanyb" accessType="SFTP" host="101.42.41.82" port="6101" sshConfigId="c8c37d1d-ff98-43ce-9f53-e1e01e0e6d93" sshConfig="shanyb@101.42.41.82:6101 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="efb9d2c1-279b-4701-b089-27cba1f2afa6" name="8Ka(2)">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="connect.westb.seetacloud.com" port="47583" sshConfigId="87c0cad9-f84b-4652-b7ab-db3420481433" sshConfig="root@connect.westb.seetacloud.com:47583 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="94f6a742-f5b0-4920-85d9-171dbb6848ba" name="4090*2(暂时)">
+        <fileTransfer rootFolder="/root" accessType="SFTP" sshConfigId="ec99e5d3-e5ef-4e9c-96c0-317a0947434a" sshConfig="root@connect.nmb1.seetacloud.com:45439 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="2a2d9cd6-0ed1-4647-9958-54cfee547886" name="10Ka">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="connect.westc.gpuhub.com" port="13632" sshConfigId="770c2c58-f0d7-4263-9f1e-52bb2647cf82" sshConfig="root@connect.westc.gpuhub.com:13632 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="599897e7-17e9-49e0-a7b0-b4e0c5e56ecf" name="zyx">
+        <fileTransfer rootFolder="/root" accessType="SFTP" host="connect.westc.gpuhub.com" port="45212" sshConfigId="74fed5ed-b732-4280-b61a-7653e073f7dd" sshConfig="root@connect.westc.gpuhub.com:45212 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+      <webServer id="033a2e80-75e4-49e0-8301-5db973089ec7" name="wangyu">
+        <fileTransfer rootFolder="/home/wangy" accessType="SFTP" host="101.42.41.82" port="6101" sshConfigId="24d08703-607d-4592-8ed4-8faf331bcfa4" sshConfig="wangy@101.42.41.82:6101 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
