@@ -1,7 +1,0 @@
-{"time":"2025-06-06T15:51:42.1280979+08:00","level":"INFO","msg":"stream: starting","core version":"0.19.11","symlink path":"C:\\Users\\64888\\PycharmProjects\\R1-Searcher\\wandb\\run-20250606_155142-0yqfr1k3\\logs\\debug-core.log"}
-{"time":"2025-06-06T15:51:43.2252242+08:00","level":"INFO","msg":"created new stream","id":"0yqfr1k3"}
-{"time":"2025-06-06T15:51:43.2252242+08:00","level":"INFO","msg":"stream: started","id":"0yqfr1k3"}
-{"time":"2025-06-06T15:51:43.2252242+08:00","level":"INFO","msg":"writer: Do: started","stream_id":"0yqfr1k3"}
-{"time":"2025-06-06T15:51:43.2257481+08:00","level":"INFO","msg":"sender: started","stream_id":"0yqfr1k3"}
-{"time":"2025-06-06T15:51:43.2257481+08:00","level":"INFO","msg":"handler: started","stream_id":"0yqfr1k3"}
-{"time":"2025-06-06T15:51:43.9095818+08:00","level":"INFO","msg":"Starting system monitor"}
