@@ -117,6 +117,7 @@ class MathRuleProxy:
         self.log_file = args.log_file
         self.all_batches = []  # 存储所有批次数据
         self.cnt = 0
+        self.stage = args.stage
 
     def get_answer_dict(self, eval_dataset):
         eval_data_dict = {}
@@ -126,7 +127,6 @@ class MathRuleProxy:
 
     def get_qa(self, query):
         # 新格式解析
-        print()
         if "<|im_start|>user" in query and "<|im_start|>assistant" in query:
             # 提取问题部分
             user_start = query.find("<|im_start|>user") + len("<|im_start|>user")
@@ -157,6 +157,15 @@ class MathRuleProxy:
         return extract_answer_math(query)
 
     def get_reward(self, queries):
+        assert self.stage in [1, 2, 3], "The stage can only be 1, 2, or 3."
+
+        if self.stage == 1:
+            format_reward = 0.5
+            answer_reward = 0
+        else:       # 2, 3 stage
+            format_reward = 0
+            answer_reward = 1
+
         # 第一步：预处理所有queries
         for i in range(len(queries)):
             queries[i] = (
@@ -195,7 +204,7 @@ class MathRuleProxy:
                 print(f'模型答案: {pred_answer}\n 标准答案: {ground_truth}')
                 print(f'cover_flag: {cover_flag}')
                 if cover_flag:
-                    score += 2
+                    score += answer_reward
 
                 # 第四步：计算各种格式标签奖励（只有完成的才能加分）
                 count_begin_query = solution.count("<|begin_of_query|>")
@@ -210,18 +219,18 @@ class MathRuleProxy:
                 count_begin_answer = solution.count("<answer>")
                 count_end_answer = solution.count("</answer>")
 
-                # 各种标签奖励，每个0.5分
+                # 各种标签奖励
                 if count_begin_query == count_end_query >= 1:
-                    score += 0
+                    score += format_reward
 
                 if count_begin_gen == count_end_gen >= 1:
-                    score += 0
+                    score += format_reward
 
                 if count_begin_think == count_end_think >= 1:
-                    score += 0
+                    score += format_reward
 
                 if count_begin_answer == count_end_answer >= 1:
-                    score += 0
+                    score += format_reward
 
             # 保存当前样本数据
             sample_data = {
@@ -268,6 +277,7 @@ if __name__ == "__main__":
     parser.add_argument("--port", type=int, default=5001, help="Port number for the server")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="IP for the server")
     parser.add_argument("--log_file", type=str, default=None, help="Path to JSON log file")
+    parser.add_argument("--stage", type=int, default=-1, help="Stage number")
 
     args = parser.parse_args()
 
@@ -286,5 +296,5 @@ if __name__ == "__main__":
 
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
-# 使用示例:
+# example:
 # python reward_server_qwen_zero.py --data_path /path/to/data.json --reward_pretrain /path/to/model --log_file /path/to/results.json --port 1278 --host 127.0.0.1
