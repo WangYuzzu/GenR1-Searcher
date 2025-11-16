@@ -63,8 +63,8 @@ console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(console_formatter)
 logger.addHandler(console_handler)
 
-logger.info(f"📝 日志文件: {log_file}")
-logger.info(f"🚀 Logger初始化完成")
+logger.info(f"日志文件: {log_file}")
+logger.info(f"Logger初始化完成")
 
 
 # new
