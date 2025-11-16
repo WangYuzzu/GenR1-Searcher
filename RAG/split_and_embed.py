@@ -2,20 +2,12 @@
 """
 split_and_embed.py
 
-1. 把大的 wiki_kilt_100_really.tsv 按行均匀切成 n 份
+1. 把大的 wiki_kilt_100_really.tsv 按行均匀切成 n 份 (n <= GPU 可用数)
 2. 并行调用 build_corpus_embedding.py，对每份做向量化
-3. 每份结果落到 output_dir/wiki_split_XX.pkl
-
-用法示例：
-    python split_and_embed.py \
-        --tsv  /root/wangyu/R1-Searcher-main/wiki_kilt_100_really.tsv \
-        --output_dir  emb \
-        --num_splits  8 \
-        --gpus        0,1,2,3,4,5,6,7 \
-        --model_path  /opt/aps/workdir/model/bge-large-en-v1.5
+3. 每份结果保存到 output_dir/wiki_split_XX.pkl
 """
 
-import argparse, os, math, subprocess, pathlib, sys, textwrap
+import argparse, os, subprocess, pathlib, sys, textwrap
 from multiprocessing import Pool
 
 SCRIPT_DIR = pathlib.Path(__file__).resolve().parent
@@ -54,14 +46,12 @@ def main():
         Step-by-step:
           1. split large TSV → wiki_split_XX.tsv
           2. run build_corpus_embedding.py on each split (parallel)
-
-        Note: build_corpus_embedding.py 会从环境变量 BGE_MODEL_PATH 读取模型目录，
-        也可在脚本内写死。"""))
+          """))
     ap.add_argument("--tsv", required=True, help="大 TSV 文件路径")
     ap.add_argument("--output_dir", required=True, help="向量 pickle 存放目录")
     ap.add_argument("--num_splits", type=int, default=8, help="切几份")
     ap.add_argument("--gpus", default="0", help="逗号分隔的 GPU 编号")
-    ap.add_argument("--model_path", required=True, help="bge-large-en-v1.5 本地路径")
+    ap.add_argument("--model_path", required=True, help="E5 本地路径")
     args = ap.parse_args()
 
     tsv_path = pathlib.Path(args.tsv).expanduser().resolve()
@@ -71,12 +61,12 @@ def main():
     # 1. Split
     split_prefix = out_dir / "wiki_split_"
     split_files = split_tsv(str(tsv_path), str(split_prefix), args.num_splits)
-    print(f"✓  Split into {len(split_files)} files")
+    print(f"Split into {len(split_files)} files")
 
     # 2. Parallel embed
     gpu_list = [int(i) for i in args.gpus.split(",")]
     if len(gpu_list) < len(split_files):
-        print("⚠ GPU 数小于分片数，将轮流复用 GPU。")
+        print("GPU 数小于分片数，将轮流复用 GPU。")
 
     jobs = []
     for i, split_file in enumerate(split_files):

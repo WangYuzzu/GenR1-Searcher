@@ -4,9 +4,9 @@ import numpy as np
 import faiss
 
 def main():
-    split_dir = "/root/autodl-tmp/R1-Searcher/wiki_corpus_index_bulid/emb"
+    split_dir = "/root/autodl-tmp/GenR1-Searcher/wiki_corpus_index_bulid/emb"
     pattern   = os.path.join(split_dir, "wiki_split_*.pkl")
-    out_index = os.path.join(split_dir, "sq4_enwiki.bin")
+    out_index = os.path.join(split_dir, "flat_enwiki.bin")  # 全精度 Flat 索引
 
     # 1) 读取 embeddings
     split_paths = sorted(glob.glob(pattern))
@@ -30,20 +30,14 @@ def main():
         corpus[idxs] = a
     corpus = np.ascontiguousarray(corpus)
 
-    # 3) 构建 Scalar Quantizer 索引，4 bit 量化
-    print(f"Training ScalarQuantizer Q4 on {total} vectors, dim={dim} …")
-    sq = faiss.IndexScalarQuantizer(
-        dim,
-        faiss.ScalarQuantizer.QT_4bit,           # 4 bit 量化，每维4比特
-        faiss.METRIC_INNER_PRODUCT
-    )
-    sq.train(corpus)                            # 先训练量化器
-    print("Train done. Adding vectors …")
-    sq.add(corpus)                              # 再添加所有向量
-    print("Add done, ntotal =", sq.ntotal)
+    # 3) index
+    print(f"Building IndexFlatIP on {total} vectors, dim={dim} …")
+    index = faiss.IndexFlatIP(dim)
+    index.add(corpus)
+    print("Add done, ntotal =", index.ntotal)
 
-    # 4) 保存量化索引
-    faiss.write_index(sq, out_index)
+    # 4) 保存索引
+    faiss.write_index(index, out_index)
     print("Index saved to", out_index)
 
 if __name__ == "__main__":
