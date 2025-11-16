@@ -1,20 +1,13 @@
 import os
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "9"
-# os.environ["OMP_NUM_THREADS"] = "4"
-# os.environ["MKL_NUM_THREADS"] = "4"
-# os.environ["OPENBLAS_NUM_THREADS"] = "4"
-#
-# os.environ["BLAS_NUM_THREADS"] = "4"
-# os.environ["NUMEXPR_MAX_THREADS"] = "16"
 from flask import Flask, request, jsonify
 import faiss
 import numpy as np
-from FlagEmbedding import FlagModel
 import torch
-
-import time
 import sys
-import argparse
+from transformers import AutoTokenizer, AutoModel
+
 
 def load_corpus(file_path):
     with open(file_path, "r", encoding="utf-8") as file:
@@ -22,29 +15,61 @@ def load_corpus(file_path):
         corpus = [line.strip("\n") for line in corpus]
     return corpus
 
+
+def mean_pool(last_hidden_state: torch.Tensor, attention_mask: torch.Tensor) -> torch.Tensor:
+    """Mean pooling for E5 embeddings."""
+    mask = attention_mask.unsqueeze(-1).type_as(last_hidden_state)  # [batch, seq_len, 1]
+    masked = last_hidden_state * mask
+    summed = masked.sum(dim=1)                                      # [batch, hidden]
+    counts = mask.sum(dim=1).clamp(min=1e-9)                        # [batch, 1]
+    return summed / counts
+
+
+def encode_e5_queries(texts):
+    """Encode a list of query texts with E5 (global model/tokenizer/device)."""
+    # E5 query 前缀
+    batch_texts = ["query: " + t for t in texts]
+
+    enc = tokenizer(
+        batch_texts,
+        padding=True,
+        truncation=True,
+        max_length=300,
+        return_tensors="pt",
+    )
+    enc = {k: v.to(device) for k, v in enc.items()}
+
+    with torch.no_grad():
+        outputs = model(**enc)
+        embeddings = mean_pool(outputs.last_hidden_state, enc["attention_mask"])
+
+    embeddings = embeddings.cpu().numpy().astype("float32")
+    embeddings = np.ascontiguousarray(embeddings)
+    return embeddings
+
+
 # 创建 Flask 应用
 app = Flask(__name__)
+
 
 @app.route("/queries", methods=["POST"])
 def query():
     # 从请求中获取查询向量
     data = request.json
-    print(f'接受到data: {data}')
+    print(f"接受到data: {data}")
     queries = data["queries"]
-    print(f'解析queries: {queries}')
+    print(f"解析queries: {queries}")
     k = data.get("k", 3)
 
-    # s = time.time()
-    query_embeddings = model.encode_queries(queries)
-    query_embeddings = np.asarray(query_embeddings, dtype="float32")
-    query_embeddings = np.ascontiguousarray(query_embeddings)
+    # 1) 编码 query
+    query_embeddings = encode_e5_queries(queries)
 
     all_answers = []
-    print(f'正在检索...')
-    D, I = index.search(query_embeddings, k=k)  # 假设返回前3个结果
+    print("正在检索...")
+    D, I = index.search(query_embeddings, k=k)
     for idx in I:
-        answers_for_query = [corpus[i] for i in idx[:k]] # 找出该query对应的k个答案
-        all_answers.append(answers_for_query)  # 将该query的答案列表存储
+        answers_for_query = [corpus[i] for i in idx[:k]]
+        all_answers.append(answers_for_query)
 
     return jsonify({"queries": queries, "answers": all_answers})
 
@@ -53,64 +78,35 @@ if __name__ == "__main__":
     data_type = sys.argv[1]
     port = sys.argv[2]
 
-    model = FlagModel(
-        "/root/autodl-tmp/bge-large-en-v1.5",
-        query_instruction_for_retrieval="Represent this sentence for searching relevant passages:",
-        use_fp16=True,
-    )
-    model.model = model.model.to("cuda")
+    # 加载 E5 模型
+    model_name_or_path = "intfloat/e5-large-v2"
+    print(f"[INFO] Loading E5 model from: {model_name_or_path}")
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
+    model = AutoModel.from_pretrained(model_name_or_path)
+
     if torch.cuda.is_available():
-        device = torch.cuda.current_device()
-        print(f"[INFO] 当前使用的 GPU: {device} - {torch.cuda.get_device_name(device)}")
+        device = torch.device("cuda")
+        model.to(device)
+        print(f"[INFO] 当前使用的 GPU: {torch.cuda.current_device()} - {torch.cuda.get_device_name(torch.cuda.current_device())}")
     else:
+        device = torch.device("cpu")
         print("[INFO] 当前运行在 CPU 上")
 
-    print(f"[DEBUG] 模型 device: {model.model.device}")
+    print(f"[DEBUG] 模型 device: {next(model.parameters()).device}")
     print("模型已加载完毕")
-    # 打印当前GPU设备
-    if torch.cuda.is_available():
-        device = torch.cuda.current_device()
-        print(f"[INFO] 当前使用的 GPU: {device} - {torch.cuda.get_device_name(device)}")
-    else:
-        print("[INFO] 当前运行在 CPU 上")
 
     # 加载语料库
-    if data_type == 'hotpotqa':
-        file_path = "/root/autodl-tmp/R1-Searcher/wiki_corpus_index_bulid/wiki_kilt_100_really.tsv"
-    elif data_type =="all":
-        file_path ="/opt/aps/workdir/sht-RAG_RL/train/wiki_server/all_wiki/nq/output.tsv"
-    elif data_type =="with_2wiki":
-        file_path ="/opt/aps/workdir/sht-RAG_RL/train/wiki_server/data/enwiki-20171001-pages-meta-current-withlinks-abstracts_add_2wiki.tsv"
-    elif data_type =="kilt":
-        file_path ="/opt/aps/workdir/model/kilt_100/wiki_kilt_100_really.tsv"
-
-    else:
-        file_path = "/opt/aps/workdir/input/data/enwiki-20171001-pages-meta-current-withlinks-abstracts.tsv"
+    assert data_type == "hotpotqa"
+    file_path = "/root/autodl-tmp/GenR1-Searcher/RAG/wiki_kilt_100_really.tsv"
     corpus = load_corpus(file_path)
-
     print(f"语料库已加载完毕-{len(corpus)}")
 
-    # 加载建好的索引
-    if data_type == 'hotpotqa':
-        index_path = "/root/autodl-tmp/R1-Searcher/wiki_corpus_index_bulid/emb/sq4_enwiki.bin"
-    elif data_type=="all":
-        index_path = "/opt/aps/workdir/sht-RAG_RL/train/wiki_server/data/enwiki-all-index_w_title-bge-large-en-v1.5.bin"
-    elif data_type =="with_2wiki":
-        index_path ="/opt/aps/workdir/sht-RAG_RL/train/wiki_server/data/enwiki-abs-index_w_title_add_2wiki.bin"
-    elif data_type =="kilt":
-        index_path ="/opt/aps/workdir/model/kilt_100/enwiki_kilt_all.bin"
-
-    else:
-        index_path = "/opt/aps/workdir/sht-RAG_RL/train/wiki_server/data/enwiki-abs-index_w_title-bge-large-en-v1.5.bin"
+    # 加载建好的索引（注意要和 E5 向量对应的那个 flat_enwiki.bin）
+    index_path = "/root/autodl-tmp/GenR1-Searcher/RAG/emb/flat_enwiki.bin"
     index = faiss.read_index(index_path)
-    # res = faiss.StandardGpuResources()
-    # index = faiss.index_cpu_to_gpu(res, 0, index)
-    print(f"[INFO] 索引类型: {type(index)}")
-    print(f"[INFO] 是否是 GPU index: {'Gpu' in str(type(index))}")
 
-    print("索引已经建好")
-# /opt/aps/workdir/input/data/enwiki-20171001-pages-meta-current-withlinks-abstracts.tsv
-
-    app.run(host="0.0.0.0", port=port, debug=False)  # 在本地监听端口5003
+    print(f"[INFO] 索引已加载: {index_path}, ntotal={index.ntotal}")
     print("可以开始查询")
 
+    app.run(host="0.0.0.0", port=port, debug=False)
