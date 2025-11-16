@@ -1182,8 +1182,8 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                             "idx": idx,
                             "prompt_ids": input_token_ids,
                             "response_ids": output_token_ids,
-                            "retrieve_count": retrieve_count,  # 分别记录
-                            "generate_count": generate_count  # 分别记录
+                            "retrieve_count": retrieve_count,
+                            "generate_count": generate_count
                         }
                         finished_texts.append(original_data)
                         continue
@@ -1238,8 +1238,8 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                                 "prompt": prompt + generated_text.strip(),
                                 "prompt_ids": input_token_ids,
                                 "response_ids": output_token_ids,
-                                "retrieve_count": retrieve_count,  # 分别记录
-                                "generate_count": generate_count,  # 分别记录
+                                "retrieve_count": retrieve_count,
+                                "generate_count": generate_count,
                                 "request_type": "generation"
                             }
                             continued_texts.append(original_data)
@@ -1248,8 +1248,8 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                                 "idx": idx,
                                 "prompt_ids": input_token_ids,
                                 "response_ids": output_token_ids,
-                                "retrieve_count": retrieve_count,  # 分别记录
-                                "generate_count": generate_count  # 分别记录
+                                "retrieve_count": retrieve_count,
+                                "generate_count": generate_count
                             }
                             finished_texts.append(original_data)
 
@@ -1260,8 +1260,8 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                             "idx": idx,
                             "prompt_ids": input_token_ids,
                             "response_ids": output_token_ids,
-                            "retrieve_count": retrieve_count,  # 分别记录
-                            "generate_count": generate_count  # 分别记录
+                            "retrieve_count": retrieve_count,
+                            "generate_count": generate_count
                         }
                         finished_texts.append(original_data)
 
@@ -1427,8 +1427,8 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                             packed_seq_lens=packed_seq_lens,
                             response_length=response_length,
                             total_length=total_length,
-                            retrieve_num=retrieve_nums,  # 🔥 只是检索次数
-                            generate_num=generate_nums,  # 🔥 只是生成次数
+                            retrieve_num=retrieve_nums,  # 检索次数
+                            generate_num=generate_nums,  # 生成次数
                             pure_response_length=pure_response_length
                         )
                     )
@@ -1472,7 +1472,7 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                     m + len(start_tokens) <= len(response_seq) and
                     response_seq[m:m + len(start_tokens)] == start_tokens):
                 is_in_masking = True
-                # print(f"\n🟢 找到文档开始标记!")
+                # print(f"\n 找到文档开始标记!")
                 # print(f"   位置: {m}")
                 # print(f"   Token序列: {response_seq[m:m + len(start_tokens)]}")
                 mask_start_idx = m
@@ -1485,7 +1485,7 @@ class RemoteExperienceMaker(NaiveExperienceMaker):
                 if (m + len(end_tokens) <= len(response_seq) and
                         response_seq[m:m + len(end_tokens)] == end_tokens):
                     is_in_masking = False
-                    # print(f"\n🔴 找到文档结束标记!")
+                    # print(f"\n 找到文档结束标记!")
                     # print(f"   位置: {m}")
                     # print(f"   Token序列: {response_seq[m:m + len(end_tokens)]}")
                     end_m = m + len(end_tokens)
