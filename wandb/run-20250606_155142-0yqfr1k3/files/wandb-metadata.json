@@ -1,0 +1,38 @@
+{
+  "os": "Windows-10-10.0.26100-SP0",
+  "python": "CPython 3.9.21",
+  "startedAt": "2025-06-06T07:51:42.113691Z",
+  "program": "C:\\Users\\64888\\PycharmProjects\\R1-Searcher\\wandb_export.py",
+  "codePath": "wandb_export.py",
+  "email": "costanzocooley@gmail.com",
+  "root": "C:\\Users\\64888\\PycharmProjects\\R1-Searcher",
+  "host": "AI",
+  "executable": "C:\\Users\\64888\\.conda\\envs\\Searchain\\python.exe",
+  "codePathLocal": "wandb_export.py",
+  "cpu_count": 24,
+  "cpu_count_logical": 32,
+  "gpu": "NVIDIA GeForce RTX 4060 Laptop GPU",
+  "gpu_count": 1,
+  "disk": {
+    "/": {
+      "total": "992240537600",
+      "used": "529098219520"
+    }
+  },
+  "memory": {
+    "total": "16779862016"
+  },
+  "cpu": {
+    "count": 24,
+    "countLogical": 32
+  },
+  "gpu_nvidia": [
+    {
+      "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+      "memoryTotal": "8585740288",
+      "cudaCores": 3072,
+      "architecture": "Ada"
+    }
+  ],
+  "cudaVersion": "12.8"
+}
