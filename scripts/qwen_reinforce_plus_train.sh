@@ -6,7 +6,7 @@ wandb_token=xxx
 export WANDB_API_KEY=$wandb_token
 
 # Path of training data
-DATA_PATH=/root/autodl-tmp/R1-Searcher/data/training_set/stage_2.jsonl
+DATA_PATH=/root/autodl-tmp/GenR1-Searcher/data/training_set/stage_2.jsonl
 
 TOKENIZER_PATH=/root/autodl-tmp/Qwen-2.5-3B-Instruct
 export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7,8
