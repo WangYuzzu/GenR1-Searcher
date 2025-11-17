@@ -174,15 +174,9 @@ def _validate_args(args):
 #     if args.critic_pretrain and args.save_value_network:
 #         ray.get(critic_model.async_save_model())
 def train(args):
-    print('0'*10)
-    _validate_args(args)                             # <-- ① 检查超参取值是否自洽（batchSize能被GPU数整除等）
-    print('1'*10)
-    # ② 构造 DeepSpeed / Flash‑Attn / LoRA 等“加速策略”统一对象
+    _validate_args(args)    # 检查超参取值是否自洽（batchSize能被GPU数整除等）
+    # ② 构造 DeepSpeed / Flash‑Attn / LoRA
     strategy = get_strategy(args)
-    print('2' * 10)
-    # ---------------------------------------------------------------
-    # ③ 如需把 Actor 与 Reference 共放一张卡上，就先建 Ray Placement Group
-    # ---------------------------------------------------------------
     pg = None
     if args.colocate_actor_ref:                      # --colocate_actor_ref
         assert (
@@ -198,18 +192,17 @@ def train(args):
         pg = placement_group(bundles, strategy="STRICT_SPREAD")  # 同节点严格分散放置
         print(f'pg: {pg}')
         ray.get(pg.ready())                          # 阻塞等待 PG 创建完成
-    print('3' * 10)
-    print(f'pg: {pg}')
+
     # ---------------- Actor / Reference 角色 ----------------
     # 0.75 / 0.25 的 GPU 配额让 Ray 均匀把两类 actor 排在同卡
     actor_model = PPORayActorGroup(
         args.actor_num_nodes,
         args.actor_num_gpus_per_node,
-        ActorModelRayActor,                          # 实际的 Ray remote 类
-        pg=pg,                                       # 若 pg 为 None 则独占 1 GPU
+        ActorModelRayActor,
+        pg=pg,
         num_gpus_per_actor=0.75 if pg else 1,
     )
-    print('4' * 10)
+
     ref_model = PPORayActorGroup(
         args.ref_num_nodes,
         args.ref_num_gpus_per_node,
@@ -217,9 +210,9 @@ def train(args):
         pg=pg,
         num_gpus_per_actor=0.25 if pg else 1,
     )
-    print('5' * 10)
+
     # ---------------------------------------------------------------
-    # ④ 价值网络 Critic & Reward 模型是否也要共卡
+    # 价值网络 Critic & Reward 模型是否也要共卡
     # ---------------------------------------------------------------
     pg = None
     if args.critic_pretrain and args.colocate_critic_reward:
@@ -267,9 +260,9 @@ def train(args):
         reward_models = None        # 使用远端 HTTP 奖励服务器
 
     # ---------------------------------------------------------------
-    # ⑤ 异步加载权重：Actor / Ref / Reward
+    # 异步加载权重：Actor / Ref / Reward
     # ---------------------------------------------------------------
-    print('6' * 10)
+
     print('异步加载权重：Actor / Ref / Reward')
     refs = []
     refs.extend(ref_model.async_init_model_from_pretrained(strategy, args.pretrain))
@@ -291,7 +284,6 @@ def train(args):
             args.enforce_eager,
             max_len,
         )
-    print('7' * 10)
 
     ray.get(refs)        # <-- 阻塞直到 Actor/Ref/Reward 全部加载完毕
     print('vllm推理引擎创建成功')
@@ -307,9 +299,9 @@ def train(args):
         ray.get(refs)    # 等 Critic 加载完
 
     # ---------------------------------------------------------------
-    # ⑥ 真·训练：Actor 异步调用 fit()，内部完成 PPO/RL 循环
+    # 训练：Actor 异步调用 fit()，内部完成 PPO/RL 循环
     # ---------------------------------------------------------------
-    print('8' * 10)
+
     print('准备训练')
     refs = actor_model.async_fit_actor_model(
         critic_model,
@@ -325,7 +317,7 @@ def train(args):
     ray.get(actor_model.async_save_model())
     if args.critic_pretrain and args.save_value_network:
         ray.get(critic_model.async_save_model())
-    print('9' * 10)
+
     print('模型保存成功')
 
 if __name__ == "__main__":
