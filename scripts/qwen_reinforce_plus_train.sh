@@ -14,15 +14,15 @@ export OMP_NUM_THREADS=1
 export MKL_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export NUMEXPR_MAX_THREADS=1
-N_SAMPLES=2
+N_SAMPLES=16
 EPISODE=100
 LR=2e-6
 MAX_LENGTH=29000
-PORT=1278  # 远端奖励服务器端口（启动 reward_server_qwen_zero.py 时用的）
+PORT=1278  # 远端奖励服务器端口（启动 reward_server.py 时用的）
 TEMP=1.0
 WARMUP=0.0
-TBS=72
-RBS=72
+TBS=36
+RBS=36
 KL=0.0
 
 
