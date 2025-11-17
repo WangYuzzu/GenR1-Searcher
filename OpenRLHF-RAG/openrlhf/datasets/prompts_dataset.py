@@ -7,8 +7,8 @@ def preprocess_data(data, input_template=None, input_key="input", apply_chat_tem
         question = data["question"]
         idx = data["idx"]
 
-        messages_chat=[
-            {"role": "system","content": """You are a helpful assistant.
+        messages_chat = [
+            {"role": "system", "content": """You are a helpful assistant.
 Given a question, you should answer it by first thinking about the reasoning process in the mind and then providing the final answer.
 The output format of reasoning process and final answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., "<think> reasoning process here </think>\n\n<answer> final answer here </answer>".
 
@@ -21,35 +21,35 @@ During the thinking process, you have access to two external tools if necessary:
 
 **Tool 2: Document Generation System**
 - Format: "<|begin_of_generation|> generation query (only list keywords, such as "keyword_1 keyword_2 ...")</|end_of_generation|>"
-- Function: A 7B parameter language model that generates documents tailored to your query
+- Function: A 3B parameter language model that generates documents tailored to your query
 - Response format: "<|begin_of_documents|> ...generated document... </|end_of_documents|>"
 
 **Note**: For multi-hop problems, it is recommended to decompose them into multiple simple sub-problems before using the tool. Each sub-problem should contain only a single query goal."""},
-            {"role": "user", "content":question}
+            {"role": "user", "content": question}
         ]
-
-#         messages_chat = [
-#             {"role": "system", "content": """You are a helpful assistant.
-#         Given a question, you should answer it by first thinking about the reasoning process in the mind and then providing the final answer.
-#         The output format of reasoning process and final answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., "<think> reasoning process here </think>\n\n<answer> final answer here </answer>".
-#         During the thinking process, **you can perform searching for uncertain knowledge** if necessary with the format of "<|begin_of_query|> search query (only list keywords, such as **"keyword_1 keyword_2 ..."**)</|end_of_query|>". **A query must involve only a single triple**.
-#         Then, the search system will provide you with the retrieval information with the format of "<|begin_of_documents|> ...search results... </|end_of_documents|>".
-#         """},
-#             {"role": "user", "content": question}
-#         ]
 
         prompt = apply_chat_template(messages_chat, tokenize=False, add_generation_prompt=True) + "<think>"
 
     else:
-        print('用的base_prompt:!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
         base_prompt = """The User asks a question, and the Assistant solves it.
-The Assistant first thinks about the reasoning process in the mind and then provides the User with the final answer.
-The output format of reasoning process and final answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., "<think> reasoning process here </think>\n\n<answer> final answer here </answer>".
-During the thinking process, **the Assistant can perform searching** for uncertain knowledge if necessary with the format of "<|begin_of_query|> search query (only list keywords, such as **"keyword_1 keyword_2 ..."**)</|end_of_query|>". **A query must involve only a single triple**.
-Then, the search system will provide the Assistant with the retrieval information with the format of "<|begin_of_documents|> ...search results... </|end_of_documents|>".
+        The Assistant first thinks about the reasoning process in the mind and then provides the User with the final answer.
+        The output format of reasoning process and final answer are enclosed within <think> </think> and <answer> </answer> tags, respectively, i.e., "<think> reasoning process here </think>\n\n<answer> final answer here </answer>".
+        During the thinking process, **the Assistant can perform searching** for uncertain knowledge if necessary with the format of "<|begin_of_query|> search query (only list keywords, such as **"keyword_1 keyword_2 ..."**)</|end_of_query|>". **A query must involve only a single triple**.
+        Then, the search system will provide the Assistant with the retrieval information with the format of "<|begin_of_documents|> ...search results... </|end_of_documents|>".
+    
+        In addition to the search system, the Assistant can also call a **document generation system**. 
+The call format is "<|begin_of_generation|> generation query (only list keywords, such as **"keyword_1 keyword_2 ..."**)</|end_of_generation|>", 
+and the document generation system (a 3B-parameter language model that generates background documents tailored to the query) 
+will respond with "<|begin_of_documents|> ...generated document... </|end_of_documents|>".
 
-User:{question}
-Assistant: <think>"""
+        For multi-hop problems, the Assistant should first decompose the original question into several simpler sub-problems. Each tool query must focus on a single goal. All reasoning steps and tool calls should be written inside the <think> ... </think> block, and only the final solution should be presented inside the <answer> ... </answer> block.
+    
+        User:{question}
+        Assistant: <think>"""
+
+        question = data["question"]
+        idx = data["idx"]
+        prompt = base_prompt.format(question=question)
 
         question = data["question"]
         idx = data["idx"]
@@ -69,11 +69,11 @@ class PromptDataset(Dataset):
     """
 
     def __init__(
-        self,
-        dataset,
-        tokenizer,
-        strategy,
-        input_template=None,
+            self,
+            dataset,
+            tokenizer,
+            strategy,
+            input_template=None,
     ) -> None:
         super().__init__()
         self.strategy = strategy
