@@ -40,8 +40,8 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
     加载RL训练的模型
 
     Args:
-        checkpoint_path: checkpoint路径（可能是global_step300这样的子目录）
-        base_model_path: 基础模型路径（当checkpoint只包含权重时使用）
+        checkpoint_path: checkpoint路径
+        base_model_path: 基础模型路径
         device: 设备
         gpu_memory_rate: GPU内存使用率
         tensor_parallel_size: 张量并行大小
@@ -55,30 +55,30 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
     # 检查checkpoint目录内容
     if os.path.isdir(checkpoint_path):
         files = os.listdir(checkpoint_path)
-        print(f"📁 Checkpoint目录包含: {files}")
+        print(f"Checkpoint目录包含: {files}")
 
         # 检查是否有.pt或.bin文件
         weight_files = [f for f in files if f.endswith('.pt') or f.endswith('.bin') or f.endswith('.safetensors')]
         if weight_files:
-            print(f"🔍 找到权重文件: {weight_files}")
+            print(f"找到权重文件: {weight_files}")
 
     # 检查是否是RL训练的checkpoint子目录（如global_step300）
     if not os.path.exists(os.path.join(checkpoint_path, "config.json")):
-        print(f"⚠️ {checkpoint_path} 没有config.json，看起来是RL训练的权重目录")
+        print(f"{checkpoint_path} 没有config.json，看起来是RL训练的权重目录")
 
         # 必须有基础模型路径
         if not base_model_path:
-            print(f"❌ 检测到RL权重文件，但没有指定基础模型路径")
+            print(f"检测到RL权重文件，但没有指定基础模型路径")
             print("请使用 --base_model_path 参数指定基础模型路径，例如：")
             print("  --base_model_path /root/autodl-tmp/Qwen-2.5-3B-Instruct")
             print("  --base_model_path Qwen/Qwen2.5-7B-Instruct")
             raise ValueError("RL权重需要指定基础模型路径")
 
         if not os.path.exists(base_model_path):
-            print(f"❌ 基础模型路径不存在: {base_model_path}")
+            print(f"基础模型路径不存在: {base_model_path}")
             raise ValueError(f"基础模型路径不存在: {base_model_path}")
 
-        print(f"✅ 使用基础模型: {base_model_path}")
+        print(f"使用基础模型: {base_model_path}")
 
         # 加载tokenizer从基础模型
         tokenizer = AutoTokenizer.from_pretrained(base_model_path)
@@ -90,11 +90,11 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
         import shutil
 
         temp_model_dir = tempfile.mkdtemp(prefix="merged_model_")
-        print(f"📁 创建临时模型目录: {temp_model_dir}")
+        print(f"创建临时模型目录: {temp_model_dir}")
 
         try:
             # 复制基础模型文件到临时目录
-            print("📋 复制基础模型文件...")
+            print("复制基础模型文件...")
             for item in os.listdir(base_model_path):
                 src = os.path.join(base_model_path, item)
                 dst = os.path.join(temp_model_dir, item)
@@ -104,7 +104,7 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
                     shutil.copytree(src, dst)
 
             # 复制RL权重文件到临时目录，覆盖基础模型权重
-            print("📋 复制RL权重文件...")
+            print("复制RL权重文件...")
             for item in os.listdir(checkpoint_path):
                 if item.endswith('.pt') or item.endswith('.bin') or item.endswith('.safetensors'):
                     src = os.path.join(checkpoint_path, item)
@@ -125,7 +125,7 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
                     shutil.copy2(src, dst)
 
             # 使用合并后的模型目录加载
-            print(f"🔄 加载合并后的模型...")
+            print(f"加载合并后的模型...")
             llm = LLM(
                 model=temp_model_dir,
                 tensor_parallel_size=tensor_parallel_size,
@@ -139,9 +139,9 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
         except Exception as e:
             # 如果失败，清理临时目录并回退到基础模型
             shutil.rmtree(temp_model_dir, ignore_errors=True)
-            print(f"❌ 合并模型失败: {e}")
-            print(f"🔄 回退到基础模型: {base_model_path}")
-            print("⚠️ 警告：将使用基础模型而非RL训练的权重")
+            print(f"合并模型失败: {e}")
+            print(f"回退到基础模型: {base_model_path}")
+            print("警告：将使用基础模型而非RL训练的权重")
 
             llm = LLM(
                 model=base_model_path,
@@ -152,7 +152,7 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
 
     else:
         # 标准加载流程（checkpoint包含完整模型）
-        print("✅ 检测到完整模型目录，使用标准加载流程")
+        print("检测到完整模型目录，使用标准加载流程")
         tokenizer = AutoTokenizer.from_pretrained(checkpoint_path)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
@@ -164,7 +164,7 @@ def load_rl_model(checkpoint_path, base_model_path=None, device='cuda', gpu_memo
             trust_remote_code=True
         )
 
-    print("✅ 模型加载完成!")
+    print("模型加载完成!")
     return llm, tokenizer
 
 
@@ -232,10 +232,10 @@ def call_retrieval_service(queries: List[str], url: str = "http://0.0.0.0:5003/q
             result = response.json()
             return result["answers"]
         else:
-            print(f"⚠️ 检索服务响应异常: {response.status_code}")
+            print(f"检索服务响应异常: {response.status_code}")
             return [[] for _ in queries]
     except Exception as e:
-        print(f"❌ 检索请求失败: {e}")
+        print(f"检索请求失败: {e}")
         return [[] for _ in queries]
 
 
@@ -259,10 +259,10 @@ def call_generation_service(queries: List[str], url: str = "http://101.42.41.82:
             result = response.json()
             return result["documents"]
         else:
-            print(f"⚠️ 文档生成服务响应异常: {response.status_code}")
+            print(f"文档生成服务响应异常: {response.status_code}")
             return ["No document generated." for _ in queries]
     except Exception as e:
-        print(f"❌ 文档生成请求失败: {e}")
+        print(f"文档生成请求失败: {e}")
         return ["No document generated." for _ in queries]
 
 
@@ -347,7 +347,7 @@ def generate_answer_with_tools(llm, question: str, tokenizer,
             query = " ".join(query.split())
 
             if query:
-                print(f"🔍 检索查询: {query}")
+                print(f"检索查询: {query}")
                 retrieve_count += 1
 
                 # 调用检索服务
@@ -359,7 +359,7 @@ def generate_answer_with_tools(llm, question: str, tokenizer,
                                   "<|begin_of_documents|>\n" + doc_content + "</|end_of_documents|>\n\n")
                 continue
             else:
-                print("❌ 检索查询为空")
+                print("检索查询为空")
                 break
 
         # 检查是否需要生成文档
@@ -368,7 +368,7 @@ def generate_answer_with_tools(llm, question: str, tokenizer,
             gen_query = gen_query.strip()
 
             if gen_query:
-                print(f"📝 生成查询: {gen_query}")
+                print(f"生成查询: {gen_query}")
                 generate_count += 1
 
                 # 调用生成服务
@@ -380,12 +380,12 @@ def generate_answer_with_tools(llm, question: str, tokenizer,
                                   "<|begin_of_documents|>\n" + generated_doc + "</|end_of_documents|>\n\n")
                 continue
             else:
-                print("❌ 生成查询为空")
+                print("生成查询为空")
                 break
 
         # 其他情况：生成结束或包含完整答案
         else:
-            print(f"💭 生成结束，原因: {stop_reason}")
+            print(f"生成结束，原因: {stop_reason}")
             current_prompt = current_prompt + generated_text
             full_generation += generated_text
 
@@ -407,7 +407,7 @@ def generate_answer_with_tools(llm, question: str, tokenizer,
 
             # 如果只有</think>但没有答案，继续生成答案部分
             elif "</think>" in full_generation and "<answer>" not in full_generation:
-                print("🔄 思考完成，继续生成答案...")
+                print("思考完成，继续生成答案...")
                 answer_prompt = current_prompt + "\n\n<answer>"
 
                 # 生成最终答案 - 确定性采样
@@ -446,7 +446,7 @@ def generate_answer_with_tools(llm, question: str, tokenizer,
                 }
 
     # 超过最大轮数
-    print("⚠️ 超过最大轮数限制")
+    print("超过最大轮数限制")
     return {
         "question": question,
         "final_answer": "Max rounds exceeded.",
@@ -538,7 +538,7 @@ def worker_evaluate(worker_id: int, data_chunk: List[Dict], args, results_queue)
         gpu_id = worker_id % torch.cuda.device_count()  # 循环分配GPU
         os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
-        print(f"🚀 Worker {worker_id} 启动，使用GPU {gpu_id}，处理 {len(data_chunk)} 个样本")
+        print(f"Worker {worker_id} 启动，使用GPU {gpu_id}，处理 {len(data_chunk)} 个样本")
 
         # 加载模型（每个进程独立加载）
         llm, tokenizer = load_rl_model(
@@ -581,10 +581,10 @@ def worker_evaluate(worker_id: int, data_chunk: List[Dict], args, results_queue)
 
         # 将结果放入队列
         results_queue.put(worker_results)
-        print(f"✅ Worker {worker_id} 完成，处理了 {len(data_chunk)} 个样本")
+        print(f"Worker {worker_id} 完成，处理了 {len(data_chunk)} 个样本")
 
     except Exception as e:
-        print(f"❌ Worker {worker_id} 出错: {e}")
+        print(f"Worker {worker_id} 出错: {e}")
         import traceback
         traceback.print_exc()
         results_queue.put([])  # 放入空结果避免主进程等待
@@ -602,7 +602,7 @@ def evaluate_model_parallel(test_file: str, args, num_workers: int = 4) -> Dict[
     Returns:
         评估结果
     """
-    print(f"🚀 开始并行评估，使用 {num_workers} 个worker进程")
+    print(f"开始并行评估，使用 {num_workers} 个worker进程")
     print(f"测试文件: {test_file}")
 
     # 加载测试数据
@@ -643,13 +643,13 @@ def evaluate_model_parallel(test_file: str, args, num_workers: int = 4) -> Dict[
     for i in range(len(data_chunks)):
         worker_results = results_queue.get()
         all_worker_results.extend(worker_results)
-        print(f"✅ 收到worker结果，当前总数: {len(all_worker_results)}")
+        print(f"收到worker结果，当前总数: {len(all_worker_results)}")
 
     # 等待所有进程完成
     for p in processes:
         p.join()
 
-    print(f"🎉 所有worker完成！总共处理 {len(all_worker_results)} 个样本")
+    print(f"所有worker完成！总共处理 {len(all_worker_results)} 个样本")
 
     # 整理结果
     predictions = []
@@ -826,13 +826,13 @@ def main():
 
     # 检查CUDA
     if not torch.cuda.is_available():
-        print("⚠️ CUDA不可用，可能影响性能")
+        print("CUDA不可用，可能影响性能")
 
     available_gpus = torch.cuda.device_count()
     print(f"可用GPU数量: {available_gpus}")
 
     if args.num_workers > available_gpus:
-        print(f"⚠️ 警告：worker数量({args.num_workers})超过可用GPU数量({available_gpus})")
+        print(f"警告：worker数量({args.num_workers})超过可用GPU数量({available_gpus})")
         print(f"建议设置 --num_workers {available_gpus}")
 
     print(f"开始评估...")
@@ -842,12 +842,12 @@ def main():
     print(f"生成服务: {args.generation_url}")
 
     if args.num_workers > 1:
-        print(f"🚀 并行模式: {args.num_workers} 个worker进程，每个使用1张GPU")
+        print(f"并行模式: {args.num_workers} 个worker进程，每个使用1张GPU")
         print(f"预计加速比: ~{args.num_workers}x")
     else:
-        print(f"🔧 单进程模式: {args.tensor_parallel_size}张卡并行，内存利用率{args.gpu_memory_rate}")
+        print(f"单进程模式: {args.tensor_parallel_size}张卡并行，内存利用率{args.gpu_memory_rate}")
 
-    print(f"生成温度: {args.temperature} {'✅ 确定性生成' if args.temperature == 0.0 else '⚠️ 非确定性生成'}")
+    print(f"生成温度: {args.temperature} {'确定性生成' if args.temperature == 0.0 else '非确定性生成'}")
 
     llm = None  # 初始化llm变量
 
@@ -855,7 +855,7 @@ def main():
         # 根据模式选择评估方法
         if args.num_workers > 1:
             # 多进程并行模式
-            print(f"\n🚀 启动并行评估模式...")
+            print(f"\n启动并行评估模式...")
 
             results = evaluate_model_parallel(
                 args.test_file,
@@ -864,7 +864,7 @@ def main():
             )
         else:
             # 单进程模式
-            print(f"\n🔧 启动单进程评估模式...")
+            print(f"\n启动单进程评估模式...")
 
             # 加载模型
             llm, tokenizer = load_rl_model(
@@ -885,7 +885,7 @@ def main():
 
         # 打印结果
         print(f"\n{'=' * 80}")
-        print("📊 评估结果:")
+        print("评估结果:")
         print(f"{'=' * 80}")
         print(f"Cover EM得分: {results['metrics']['cover_em_score']:.4f}")
         print(f"Exact EM得分: {results['metrics']['exact_em_score']:.4f}")
@@ -893,7 +893,7 @@ def main():
         print(f"Cover匹配数: {results['metrics']['cover_matches']}")
         print(f"Exact匹配数: {results['metrics']['exact_matches']}")
 
-        print(f"\n📈 统计信息:")
+        print(f"\n统计信息:")
         print(f"平均检索次数: {results['statistics']['avg_retrieve_count']:.2f}")
         print(f"平均生成次数: {results['statistics']['avg_generate_count']:.2f}")
         print(f"总检索次数: {results['statistics']['total_retrieve_count']}")
@@ -902,7 +902,7 @@ def main():
         if 'num_workers_used' in results['statistics']:
             print(f"使用worker数量: {results['statistics']['num_workers_used']}")
 
-        print(f"\n📋 状态分布:")
+        print(f"\n状态分布:")
         for status, count in results['statistics']['status_distribution'].items():
             print(f"  {status}: {count} ({count / results['statistics']['total_samples'] * 100:.1f}%)")
 
@@ -910,7 +910,7 @@ def main():
         with open(args.output_file, 'w', encoding='utf-8') as f:
             json.dump(results, f, ensure_ascii=False, indent=2)
 
-        print(f"\n✅ 详细结果已保存到: {args.output_file}")
+        print(f"\n详细结果已保存到: {args.output_file}")
 
     finally:
         # 清理临时目录
@@ -923,7 +923,7 @@ def cleanup_temp_dirs(llm=None):
         import shutil
         temp_dir = llm._temp_model_dir
         if os.path.exists(temp_dir):
-            print(f"🧹 清理临时目录: {temp_dir}")
+            print(f"清理临时目录: {temp_dir}")
             shutil.rmtree(temp_dir, ignore_errors=True)
 
 if __name__ == '__main__':
